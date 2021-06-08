@@ -1,6 +1,7 @@
 class DogsController < ApplicationController
   before_action :set_dog, only: [:show, :edit, :update, :destroy]
   before_action :set_page, only: :index
+  before_action :establish_ownership, only: [:edit, :update]
 
   DOGS_PER_PAGE = 5
 
@@ -8,12 +9,13 @@ class DogsController < ApplicationController
   # GET /dogs.json
   def index
     if params[:sort] == 'true'
+      # Sort by number of likes in the past hour
       @dogs = Dog.joins(:likes).where("likes.created_at > ?", 1.hour.ago)
                  .group(:id).order('COUNT(likes.dog_id) DESC')
-                 .limit(DOGS_PER_PAGE).offset(@page * DOGS_PER_PAGE)
+                 .limit(DOGS_PER_PAGE).offset((@page - 1) * DOGS_PER_PAGE)
     else
       # Only display DOGS_PER_PAGE (5) at a time on each page
-      @dogs = Dog.order(:id).limit(DOGS_PER_PAGE).offset(@page * DOGS_PER_PAGE)
+      @dogs = Dog.order(:id).limit(DOGS_PER_PAGE).offset((@page - 1) * DOGS_PER_PAGE)
     end
 
     respond_to do |format|
@@ -89,6 +91,11 @@ class DogsController < ApplicationController
     # Allow user to specify which page of dogs they would like to view
     def set_page
       @page = params[:page].to_i || 0
+    end
+
+    # Only the owner of the dog can access the edit and update actions
+    def establish_ownership
+      redirect_to root_path unless @dog.user == current_user
     end
 
     # Never trust parameters from the scary internet, only allow the white list through.
