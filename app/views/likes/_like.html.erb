@@ -1,0 +1,3 @@
+<%= simple_form_for(:like, url: likes_path(dog_id: @dog.id)) do |f| %>
+  <%= submit_tag 'Like This Pup!', id: 'like-button' %>
+<% end %>

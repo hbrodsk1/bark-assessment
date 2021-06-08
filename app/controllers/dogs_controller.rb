@@ -1,10 +1,25 @@
 class DogsController < ApplicationController
   before_action :set_dog, only: [:show, :edit, :update, :destroy]
+  before_action :set_page, only: :index
+
+  DOGS_PER_PAGE = 5
 
   # GET /dogs
   # GET /dogs.json
   def index
-    @dogs = Dog.all
+    if params[:sort] == 'true'
+      @dogs = Dog.joins(:likes).where("likes.created_at > ?", 1.hour.ago)
+                 .group(:id).order('COUNT(likes.dog_id) DESC')
+                 .limit(DOGS_PER_PAGE).offset(@page * DOGS_PER_PAGE)
+    else
+      # Only display DOGS_PER_PAGE (5) at a time on each page
+      @dogs = Dog.order(:id).limit(DOGS_PER_PAGE).offset(@page * DOGS_PER_PAGE)
+    end
+
+    respond_to do |format|
+      format.html
+      format.json { render :index, status: :ok }
+    end
   end
 
   # GET /dogs/1
@@ -24,7 +39,7 @@ class DogsController < ApplicationController
   # POST /dogs
   # POST /dogs.json
   def create
-    @dog = Dog.new(dog_params)
+    @dog = current_user.dogs.new(dog_params)
 
     respond_to do |format|
       if @dog.save
@@ -69,6 +84,11 @@ class DogsController < ApplicationController
     # Use callbacks to share common setup or constraints between actions.
     def set_dog
       @dog = Dog.find(params[:id])
+    end
+
+    # Allow user to specify which page of dogs they would like to view
+    def set_page
+      @page = params[:page].to_i || 0
     end
 
     # Never trust parameters from the scary internet, only allow the white list through.

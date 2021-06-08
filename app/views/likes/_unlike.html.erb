@@ -1,0 +1,3 @@
+<%= simple_form_for(:like, url: like_path(like.id, dog_id: @dog.id), method: :delete) do |f| %>
+  <%= submit_tag 'Unlike This Pup :(', id: 'unlike-button' %>
+<% end %>
