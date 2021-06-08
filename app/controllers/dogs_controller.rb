@@ -1,7 +1,7 @@
 class DogsController < ApplicationController
   before_action :set_dog, only: [:show, :edit, :update, :destroy]
   before_action :set_page, only: :index
-  before_action :establish_ownership, only: [:edit, :update]
+  before_action :establish_ownership, only: [:edit, :update, :destroy]
 
   DOGS_PER_PAGE = 5
 
